@@ -372,3 +372,8 @@ export type CustomDecoratorComponentProps<
 export type CustomDecoratorComponents = {
   [K in SubDecorationSymbol]?: FC<CustomDecoratorComponentProps<K>>;
 };
+
+export type RenderChildTextHooks = {
+  setLinkUrl?: (url: string) => string;
+  setPageUrl?: (pageId: string) => string;
+};

@@ -9,7 +9,8 @@ import {
   CustomBlockComponents,
   BlockValueProp,
   CustomDecoratorComponents,
-  CustomDecoratorComponentProps
+  CustomDecoratorComponentProps,
+  RenderChildTextHooks
 } from "./types";
 import Asset from "./components/asset";
 import Code from "./components/code";
@@ -18,7 +19,8 @@ import PageHeader from "./components/page-header";
 import { classNames, getTextContent, getListNumber } from "./utils";
 
 export const createRenderChildText = (
-  customDecoratorComponents?: CustomDecoratorComponents
+  customDecoratorComponents?: CustomDecoratorComponents,
+  hooks?: RenderChildTextHooks
 ) => (properties: DecorationType[], blocks: BlockMapType) => {
   return properties?.map(([text, decorations], i) => {
     if (!decorations) {
@@ -51,14 +53,16 @@ export const createRenderChildText = (
           case "s":
             return <s key={i}>{element}</s>;
           case "a":
+            const linkUrl = hooks?.setLinkUrl?.(decorator[1]) ?? decorator[1];
             return (
-              <a className="notion-link" href={decorator[1]} key={i}>
+              <a className="notion-link" href={linkUrl} key={i}>
                 {element}
               </a>
             );
           case "p":
+            const pageUrl = hooks?.setPageUrl?.(decorator[1]) ?? decorator[1];
             return (
-              <a className="notion-link" href={decorator[1]} key={i}>
+              <a className="notion-link" href={pageUrl} key={i}>
                 {element}
               </a>
             );
@@ -104,6 +108,7 @@ interface Block {
   hideHeader?: boolean;
   customBlockComponents?: CustomBlockComponents;
   customDecoratorComponents?: CustomDecoratorComponents;
+  hooks?: RenderChildTextHooks;
 }
 
 export const Block: React.FC<Block> = props => {
@@ -117,12 +122,16 @@ export const Block: React.FC<Block> = props => {
     mapPageUrl,
     mapImageUrl,
     customBlockComponents,
-    customDecoratorComponents
+    customDecoratorComponents,
+    hooks
   } = props;
   const blockValue = block?.value;
 
   const renderComponent = () => {
-    const renderChildText = createRenderChildText(customDecoratorComponents);
+    const renderChildText = createRenderChildText(
+      customDecoratorComponents,
+      hooks
+    );
 
     switch (blockValue?.type) {
       case "page":
