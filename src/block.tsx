@@ -47,8 +47,12 @@ export const createRenderChildText = (
           case "s":
             return <s key={i}>{element}</s>;
           case "a":
+            let href = decorator[1];
+            if (href.startsWith("/")) {
+              href = href.substr(href.indexOf("#"));
+            }
             return (
-              <a className="notion-link" href={decorator[1]} key={i}>
+              <a className="notion-link" href={href} key={i}>
                 {element}
               </a>
             );
@@ -113,6 +117,7 @@ export const Block: React.FC<Block> = props => {
 
   const renderComponent = () => {
     const renderChildText = createRenderChildText(customDecoratorComponents);
+    const blockId = block.value.id.replace(/-/g, "");
 
     switch (blockValue?.type) {
       case "page":
@@ -133,7 +138,7 @@ export const Block: React.FC<Block> = props => {
             const coverPosition = (1 - (page_cover_position || 0.5)) * 100;
 
             return (
-              <div className="notion">
+              <div className="notion" id={blockId}>
                 {!hideHeader && (
                   <PageHeader
                     blockMap={blockMap}
@@ -179,12 +184,20 @@ export const Block: React.FC<Block> = props => {
               </div>
             );
           } else {
-            return <main className="notion">{children}</main>;
+            return (
+              <main className="notion" id={blockId}>
+                {children}
+              </main>
+            );
           }
         } else {
           if (!blockValue.properties) return null;
           return (
-            <a className="notion-page-link" href={mapPageUrl(blockValue.id)}>
+            <a
+              className="notion-page-link"
+              href={mapPageUrl(blockValue.id)}
+              id={blockId}
+            >
               {blockValue.format && (
                 <div className="notion-page-icon">
                   <PageIcon block={block} mapImageUrl={mapImageUrl} />
@@ -199,29 +212,33 @@ export const Block: React.FC<Block> = props => {
       case "header":
         if (!blockValue.properties) return null;
         return (
-          <h1 className="notion-h1">
+          <h1 className="notion-h1" id={blockId}>
             {renderChildText(blockValue.properties.title)}
           </h1>
         );
       case "sub_header":
         if (!blockValue.properties) return null;
         return (
-          <h2 className="notion-h2">
+          <h2 className="notion-h2" id={blockId}>
             {renderChildText(blockValue.properties.title)}
           </h2>
         );
       case "sub_sub_header":
         if (!blockValue.properties) return null;
         return (
-          <h3 className="notion-h3">
+          <h3 className="notion-h3" id={blockId}>
             {renderChildText(blockValue.properties.title)}
           </h3>
         );
       case "divider":
-        return <hr className="notion-hr" />;
+        return <hr className="notion-hr" id={blockId} />;
       case "text":
         if (!blockValue.properties) {
-          return <div className="notion-blank">&nbsp;</div>;
+          return (
+            <div className="notion-blank" id={blockId}>
+              &nbsp;
+            </div>
+          );
         }
         const blockColor = blockValue.format?.block_color;
         return (
@@ -230,6 +247,7 @@ export const Block: React.FC<Block> = props => {
               `notion-text`,
               blockColor && `notion-${blockColor}`
             )}
+            id={blockId}
           >
             {renderChildText(blockValue.properties.title)}
           </p>
@@ -282,6 +300,7 @@ export const Block: React.FC<Block> = props => {
                 ? { width: value.format.block_width }
                 : undefined
             }
+            id={blockId}
           >
             <Asset block={block} mapImageUrl={mapImageUrl} />
 
@@ -307,7 +326,11 @@ export const Block: React.FC<Block> = props => {
         break;
       }
       case "column_list":
-        return <div className="notion-row">{children}</div>;
+        return (
+          <div className="notion-row" id={blockId}>
+            {children}
+          </div>
+        );
       case "column":
         const spacerWith = 46;
         const ratio = blockValue.format.column_ratio;
@@ -325,7 +348,7 @@ export const Block: React.FC<Block> = props => {
       case "quote":
         if (!blockValue.properties) return null;
         return (
-          <blockquote className="notion-quote">
+          <blockquote className="notion-quote" id={blockId}>
             {renderChildText(blockValue.properties.title)}
           </blockquote>
         );
@@ -335,7 +358,7 @@ export const Block: React.FC<Block> = props => {
         const collectionView = block?.collection?.types[0];
 
         return (
-          <div>
+          <div id={blockId}>
             <h3 className="notion-h3">
               {renderChildText(block.collection?.title!)}
             </h3>
@@ -423,6 +446,7 @@ export const Block: React.FC<Block> = props => {
               blockValue.format.block_color &&
                 `notion-${blockValue.format.block_color}_co`
             )}
+            id={blockId}
           >
             <div>
               <PageIcon block={block} mapImageUrl={mapImageUrl} />
@@ -441,7 +465,7 @@ export const Block: React.FC<Block> = props => {
         const bookmark_cover = blockValue.format?.bookmark_cover;
 
         return (
-          <div className="notion-row">
+          <div className="notion-row" id={blockId}>
             <a
               target="_blank"
               rel="noopener noreferrer"
@@ -478,7 +502,7 @@ export const Block: React.FC<Block> = props => {
         );
       case "toggle":
         return (
-          <details className="notion-toggle">
+          <details className="notion-toggle" id={blockId}>
             <summary>{renderChildText(blockValue.properties.title)}</summary>
             <div>{children}</div>
           </details>
